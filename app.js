@@ -160,10 +160,12 @@ const state = { mode: "drive", soil: "loam", mass: 1000, slip: 0.20, tgt: 0.15,
 const $ = id => document.getElementById(id);
 const fmt = (v, d = 2) => v.toFixed(d);
 
-const DIVERGE = [[0, "#b2182b"], [0.25, "#d6604d"], [0.5, "#f5f5f5"], [0.75, "#66bd63"], [1, "#1a9850"]];
-const SFSCALE = [[0, "#b2182b"], [0.4, "#d6604d"], [0.5, "#f5f5f5"], [0.7, "#66bd63"], [1, "#1a9850"]];
-const PLOTLT = { paper_bgcolor: "#0c0c0c", plot_bgcolor: "#0c0c0c",
-                 font: { color: "#b7b7b7", size: 11 } };
+const DIVERGE = [[0, "#c2261f"], [0.25, "#e3695f"], [0.5, "#f5f5f7"], [0.75, "#8fd6a0"], [1, "#2f9e44"]];
+const SFSCALE = [[0, "#c2261f"], [0.4, "#e3695f"], [0.5, "#f5f5f7"], [0.7, "#8fd6a0"], [1, "#2f9e44"]];
+const PLOTLT = { paper_bgcolor: "#f5f5f7", plot_bgcolor: "#f5f5f7",
+                 font: { family: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+                         color: "#86868b", size: 11 } };
+const LC = { red: "#ff3b30", blue: "#0066cc", teal: "#30b0c7" };   // Apple 시스템 팔레트
 const CFG = { displayModeBar: false, responsive: true };
 
 /* 모드별 UI 텍스트 */
@@ -248,9 +250,9 @@ function draw3d(g, l0, l1, l2, hold) {
   const surf = {
     type: "surface", x: g.Ds, y: g.bs, z: g.T, customdata: hold ? g.TM : undefined,
     colorscale, cmin, cmax,
-    colorbar: { title: txt.cbar, tickfont: { color: "#888" }, titlefont: { color: "#888" },
+    colorbar: { title: txt.cbar, tickfont: { color: "#86868b" }, titlefont: { color: "#86868b" },
                 thickness: 12, len: 0.6, outlinewidth: 0 },
-    contours: { z: { show: true, color: "#00000055", usecolormap: true } },
+    contours: { z: { show: true, color: "rgba(0,0,0,0.16)", usecolormap: false } },
     lighting: { ambient: 0.65, diffuse: 0.8, specular: 0.15, roughness: 0.9 },
     hovertemplate: hover,
   };
@@ -259,18 +261,18 @@ function draw3d(g, l0, l1, l2, hold) {
     line: { color, width: 7 }, name, hoverinfo: "name", showlegend: true,
   });
   const layout = { ...PLOTLT, margin: { l: 0, r: 0, t: 10, b: 0 },
-    legend: { x: 0.02, y: 0.95, bgcolor: "#141414cc", font: { size: 10 },
-              bordercolor: "#333", borderwidth: 1 },
+    legend: { x: 0.02, y: 0.95, bgcolor: "#ffffffd9", font: { size: 10, color: "#1d1d1f" },
+              bordercolor: "#e0e0e0", borderwidth: 1 },
     scene: {
-      xaxis: { title: "직경 D (m)", color: "#888", gridcolor: "#2a2a2a", backgroundcolor: "#0c0c0c" },
-      yaxis: { title: "폭 b (m)", color: "#888", gridcolor: "#2a2a2a", backgroundcolor: "#0c0c0c" },
-      zaxis: { title: txt.zAxis, color: "#888", gridcolor: "#2a2a2a", backgroundcolor: "#0c0c0c" },
+      xaxis: { title: "직경 D (m)", color: "#6e6e73", gridcolor: "#e3e3e6", backgroundcolor: "#f5f5f7" },
+      yaxis: { title: "폭 b (m)", color: "#6e6e73", gridcolor: "#e3e3e6", backgroundcolor: "#f5f5f7" },
+      zaxis: { title: txt.zAxis, color: "#6e6e73", gridcolor: "#e3e3e6", backgroundcolor: "#f5f5f7" },
       camera: { eye: { x: -1.55, y: 1.55, z: 0.9 } },
     } };
   Plotly.react("plot3d", [surf,
-    mk(l0, "#e5484d", hold ? "실속 경계 SF=1" : "자력주행 경계"),
-    mk(l1, "#f2c744", hold ? "목표 안전율선" : "목표 견인선"),
-    mk(l2, "#4cc3d9", "침하 한계선")], layout, CFG);
+    mk(l0, LC.red, hold ? "실속 경계 SF=1" : "자력주행 경계"),
+    mk(l1, LC.blue, hold ? "목표 안전율선" : "목표 견인선"),
+    mk(l2, LC.teal, "침하 한계선")], layout, CFG);
 }
 
 function draw2d(g, l0, l1, l2, f0, f1, f2, hold) {
@@ -288,9 +290,9 @@ function draw2d(g, l0, l1, l2, f0, f1, f2, hold) {
     type: "contour", x: g.Ds, y: g.bs, z: g.T, customdata: hold ? g.TM : undefined,
     colorscale, zmin, zmax,
     contours: { coloring: "heatmap", showlabels: true,
-                labelfont: { color: "#666", size: 9 }, labelformat: zfmt },
-    line: { color: "#00000044", width: 0.5 },
-    colorbar: { title: hold ? "SF" : "N", tickfont: { color: "#888" }, titlefont: { color: "#888" },
+                labelfont: { color: "#6e6e73", size: 9 }, labelformat: zfmt },
+    line: { color: "rgba(0,0,0,0.12)", width: 0.5 },
+    colorbar: { title: hold ? "SF" : "N", tickfont: { color: "#86868b" }, titlefont: { color: "#86868b" },
                 thickness: 10, len: 0.8, outlinewidth: 0 },
     hovertemplate: hover,
   };
@@ -309,14 +311,14 @@ function draw2d(g, l0, l1, l2, f0, f1, f2, hold) {
              line: { color, width: 1.5, dash: "dash" }, hoverinfo: "skip", showlegend: false };
   };
   const layout = { ...PLOTLT, margin: { l: 55, r: 10, t: 24, b: 45 },
-    title: { text: txt.t2d, font: { size: 11, color: "#888" } },
+    title: { text: txt.t2d, font: { size: 11, color: "#86868b" } },
     showlegend: false,
-    xaxis: { title: "휠 직경 D (m)", color: "#888", gridcolor: "#222", zeroline: false },
-    yaxis: { title: "휠 폭 b (m)", color: "#888", gridcolor: "#222", zeroline: false } };
+    xaxis: { title: "휠 직경 D (m)", color: "#6e6e73", gridcolor: "#e8e8ea", zeroline: false },
+    yaxis: { title: "휠 폭 b (m)", color: "#6e6e73", gridcolor: "#e8e8ea", zeroline: false } };
   Plotly.react("plot2d", [heat,
-    solid(l0, "#e5484d"), fitLine(f0, "#e5484d88"),
-    solid(l1, "#f2c744"), fitLine(f1, "#f2c74488"),
-    solid(l2, "#4cc3d9"), fitLine(f2, "#4cc3d988")], layout, CFG);
+    solid(l0, LC.red), fitLine(f0, "#ff3b3077"),
+    solid(l1, LC.blue), fitLine(f1, "#0066cc77"),
+    solid(l2, LC.teal), fitLine(f2, "#30b0c777")], layout, CFG);
 }
 
 function showEq(fId, dId, f, desc, stats, level) {
@@ -332,7 +334,7 @@ function showEq(fId, dId, f, desc, stats, level) {
   }
   $(fId).textContent = `b = ${f.alpha.toFixed(3)} · D^(${f.beta.toFixed(2)})`;
   const ratio = Math.pow(2, f.beta);
-  $(dId).innerHTML = `${desc}<br>직경 2배 → 필요 폭 ≈ <b style="color:#ececec">${ratio >= 1 ? fmt(ratio, 1) + "배" : "1/" + fmt(1 / ratio, 1) + "배"}</b>` +
+  $(dId).innerHTML = `${desc}<br>직경 2배 → 필요 폭 ≈ <b>${ratio >= 1 ? fmt(ratio, 1) + "배" : "1/" + fmt(1 / ratio, 1) + "배"}</b>` +
     ` <span class="err">· 피팅오차 ${(f.maxErr * 100).toFixed(1)}%</span>`;
 }
 
