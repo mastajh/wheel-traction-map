@@ -7,72 +7,84 @@
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <style>
   :root{
-    --bg:#0c0c0c; --panel:#141414; --line:#262626;
-    --txt:#b7b7b7; --dim:#6f6f6f; --bright:#ececec;
-    --amber:#f2c744; --red:#e5484d; --cyan:#4cc3d9; --green:#46a758;
+    --blue:#0066cc; --blue-focus:#0071e3;
+    --ink:#1d1d1f; --ink-80:#333333; --muted:#86868b; --faint:#7a7a7a;
+    --hairline:#e0e0e0; --divider:#f0f0f0;
+    --canvas:#ffffff; --parchment:#f5f5f7; --pearl:#fafafc; --chip:#d2d2d7;
+    --red:#ff3b30; --teal:#30b0c7;
     --mono:"SF Mono",ui-monospace,Menlo,Consolas,"D2Coding",monospace;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%;background:var(--bg);color:var(--txt);
-    font-family:-apple-system,"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  html,body{height:100%;background:var(--parchment);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;
     font-size:13px;overflow:hidden}
-  /* ---------- header ---------- */
-  header{height:46px;display:flex;align-items:center;gap:14px;padding:0 16px;
-    border-bottom:1px solid var(--line);background:var(--panel)}
-  header h1{font-size:14px;font-weight:600;color:var(--bright);letter-spacing:.2px;white-space:nowrap}
-  header .sub{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  header .badge{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--amber);
-    border:1px solid #4a3d16;padding:3px 9px;border-radius:3px;white-space:nowrap}
+  button{font-family:inherit;transition:transform .1s}
+  button:active{transform:scale(.95)}
+  :focus-visible{outline:2px solid var(--blue-focus);outline-offset:1px}
+  /* ---------- header : global-nav (true black, 44px) ---------- */
+  header{height:44px;display:flex;align-items:center;gap:14px;padding:0 20px;background:#000}
+  header h1{font-size:14px;font-weight:600;color:#fff;letter-spacing:-0.2px;white-space:nowrap}
+  header .sub{font-size:12px;color:#ccc;letter-spacing:-0.12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  header .badge{margin-left:auto;font-size:12px;font-weight:600;color:var(--ink);
+    background:rgba(210,210,215,.85);padding:5px 14px;border-radius:9999px;white-space:nowrap}
   /* ---------- layout ---------- */
-  #wrap{display:flex;height:calc(100% - 46px)}
-  #side{width:288px;min-width:288px;border-right:1px solid var(--line);background:var(--panel);
-    overflow-y:auto;padding:16px 16px 24px}
-  #main{flex:1;display:flex;flex-direction:column;min-width:0}
+  #wrap{display:flex;height:calc(100% - 44px)}
+  #side{width:300px;min-width:300px;border-right:1px solid var(--hairline);background:var(--canvas);
+    overflow-y:auto;padding:20px 20px 32px}
+  #main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--parchment)}
   #plot3d{flex:1.35;min-height:0}
-  #lower{flex:1;display:flex;border-top:1px solid var(--line);min-height:0}
+  #lower{flex:1;display:flex;border-top:1px solid var(--hairline);min-height:0}
   #plot2d{flex:1.25;min-width:0}
-  #guide{flex:1;border-left:1px solid var(--line);overflow-y:auto;padding:14px 16px;background:var(--panel)}
+  #guide{flex:1;border-left:1px solid var(--hairline);overflow-y:auto;padding:16px 18px;background:var(--canvas)}
   /* ---------- controls ---------- */
-  .grp{margin-bottom:18px}
-  .grp h2{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;
-    letter-spacing:1.2px;margin-bottom:9px}
-  .soil-btn{display:block;width:100%;text-align:left;background:transparent;border:1px solid var(--line);
-    color:var(--txt);padding:7px 10px;margin-bottom:5px;border-radius:4px;cursor:pointer;font-size:12px;
-    font-family:inherit;transition:border-color .15s}
-  .soil-btn small{display:block;color:var(--dim);font-size:10px;margin-top:2px;font-family:var(--mono)}
-  .soil-btn.on{border-color:var(--amber);color:var(--bright)}
-  .soil-btn.on small{color:var(--amber)}
-  .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
-  .row label{color:var(--txt)}
-  .row output{font-family:var(--mono);font-size:12px;color:var(--bright)}
-  input[type=range]{width:100%;height:18px;-webkit-appearance:none;background:transparent;cursor:pointer}
-  input[type=range]::-webkit-slider-runnable-track{height:2px;background:#333;border-radius:1px}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;
-    background:var(--amber);margin-top:-5px}
-  input[type=range]::-moz-range-track{height:2px;background:#333}
-  input[type=range]::-moz-range-thumb{width:12px;height:12px;border:none;border-radius:50%;background:var(--amber)}
-  .legend{border-top:1px solid var(--line);padding-top:12px;font-size:11px;color:var(--dim);line-height:1.9}
-  .legend i{display:inline-block;width:14px;height:3px;margin-right:7px;vertical-align:middle;border-radius:1px}
-  .model-note{border-top:1px solid var(--line);margin-top:14px;padding-top:10px;
-    font-family:var(--mono);font-size:10px;color:#555;line-height:1.8}
-  /* ---------- guide panel ---------- */
-  #guide h2{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;
-    letter-spacing:1.2px;margin:0 0 10px}
-  .eq{border:1px solid var(--line);border-left:3px solid var(--red);border-radius:4px;
-    padding:10px 12px;margin-bottom:10px;background:#181818}
-  .eq.amber{border-left-color:var(--amber)}
-  .eq.cyan{border-left-color:var(--cyan)}
-  .eq .t{font-size:11px;color:var(--dim);margin-bottom:5px}
-  .eq .f{font-family:var(--mono);font-size:14px;color:var(--bright);margin-bottom:4px}
-  .eq .d{font-size:11px;color:var(--dim);line-height:1.6}
-  .eq .err{font-family:var(--mono);color:#555}
-  #rec{margin-top:14px;border:1px dashed #3d3d3d;border-radius:4px;padding:12px}
-  #rec h3{font-size:12px;color:var(--amber);margin-bottom:8px;font-weight:600}
-  #rec table{width:100%;border-collapse:collapse;font-size:11px}
-  #rec td{padding:3px 0;color:var(--txt)}
-  #rec td:last-child{text-align:right;font-family:var(--mono);color:var(--bright)}
-  .na{color:#555;font-family:var(--mono);font-size:12px}
-  #fallback{display:none;height:100%;place-items:center;color:var(--dim);font-size:13px;text-align:center;line-height:2}
+  .grp{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--divider)}
+  .grp:last-of-type{border-bottom:none;padding-bottom:0}
+  .grp h2{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:-0.12px;margin-bottom:10px}
+  /* configurator-option-chip grammar */
+  .soil-btn{display:block;width:100%;text-align:left;background:var(--canvas);border:1px solid var(--hairline);
+    color:var(--ink);padding:9px 13px;margin-bottom:6px;border-radius:11px;cursor:pointer;
+    font-size:13px;transition:border-color .15s,color .15s,background .15s}
+  .soil-btn small{display:block;color:var(--muted);font-size:10px;margin-top:3px;font-family:var(--mono)}
+  .soil-btn.on{border:2px solid var(--blue-focus);padding:8px 12px;color:var(--blue)}
+  .soil-btn.on small{color:var(--blue)}
+  /* 해석 모드: 선택 시 button-primary (filled blue pill grammar) */
+  .mode-btn{border-radius:9999px;padding:10px 14px}
+  .mode-btn.on{background:var(--blue);border:2px solid var(--blue);padding:9px 13px;color:#fff}
+  .mode-btn.on small{color:rgba(255,255,255,.75)}
+  .row{display:flex;justify-content:space-between;align-items:baseline;margin:12px 0 3px}
+  .row label{color:var(--ink-80)}
+  .row output{font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;height:20px;-webkit-appearance:none;background:transparent;cursor:pointer}
+  input[type=range]::-webkit-slider-runnable-track{height:3px;background:var(--chip);border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+    background:#fff;border:1px solid rgba(0,0,0,.12);margin-top:-7px}
+  input[type=range]::-moz-range-track{height:3px;background:var(--chip);border-radius:2px}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border:1px solid rgba(0,0,0,.12);
+    border-radius:50%;background:#fff}
+  .legend{padding:12px 0 2px;font-size:12px;color:var(--muted);line-height:2.1}
+  .legend i{display:inline-block;width:14px;height:3px;margin-right:8px;vertical-align:middle;border-radius:2px}
+  .model-note{border-top:1px solid var(--divider);margin-top:14px;padding-top:12px;
+    font-family:var(--mono);font-size:10.5px;color:var(--faint);line-height:1.9}
+  /* ---------- guide panel : store-utility-card grammar ---------- */
+  #guide h2{font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-0.224px;margin:2px 0 12px}
+  .eq{background:var(--canvas);border:1px solid var(--hairline);border-radius:18px;
+    padding:14px 16px;margin-bottom:12px}
+  .eq .t{font-size:12px;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:7px;line-height:1.4}
+  .eq .t::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--red);flex:none}
+  .eq.amber .t::before{background:var(--blue)}
+  .eq.cyan .t::before{background:var(--teal)}
+  .eq .f{font-family:var(--mono);font-size:14.5px;font-weight:600;color:var(--ink);
+    letter-spacing:-0.2px;margin-bottom:5px}
+  .eq .d{font-size:12px;color:var(--muted);line-height:1.6}
+  .eq .d b{color:var(--blue);font-weight:600}
+  .eq .err{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+  #rec{margin-top:16px;background:var(--parchment);border-radius:18px;padding:16px}
+  #rec h3{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.224px;margin-bottom:10px}
+  #rec table{width:100%;border-collapse:collapse;font-size:12px}
+  #rec td{padding:4px 0;color:var(--ink-80)}
+  #rec td:last-child{text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .na{color:var(--faint);font-size:12px}
+  #fallback{display:none;height:100%;place-items:center;color:var(--muted);font-size:14px;text-align:center;line-height:2}
 </style>
 </head>
 <body>
@@ -125,9 +137,9 @@
     </div>
     <div class="legend">
       <i style="background:var(--red)"></i><span id="lg0">자력주행 경계 — 순견인력 0</span><br>
-      <i style="background:var(--amber)"></i><span id="lg1">목표 견인 달성선</span><br>
-      <i style="background:var(--cyan)"></i>침하비 z₀/D = 0.25 한계<br>
-      <i style="background:#555"></i>파워로 피팅 b = α·D<sup>β</sup>
+      <i style="background:var(--blue)"></i><span id="lg1">목표 견인 달성선</span><br>
+      <i style="background:var(--teal)"></i>침하비 z₀/D = 0.25 한계<br>
+      <i style="background:#aeaeb2"></i>파워로 피팅 b = α·D<sup>β</sup>
     </div>
     <div class="model-note">
       p = (kc/b + kφ)·zⁿ (Bekker)<br>
