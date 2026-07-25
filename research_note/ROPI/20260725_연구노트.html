@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>연구노트 ROPI-2026-001 — 농업 보조 4륜차 바퀴 견인력 지도 웹 앱</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  body {
+    margin: 0; padding: 0;
+    font-family: "Noto Serif KR", "Noto Serif CJK KR", "Source Han Serif KR", Georgia, serif;
+    font-size: 11pt; line-height: 1.6; color: #333;
+    text-align: justify; text-align-last: left;
+    string-set: doctitle "";
+  }
+  @page {
+    size: A4;
+    margin: 2.5cm 2cm;
+    @top-center { content: string(doctitle); font-size: 9pt; color: #888; }
+    @bottom-center { content: counter(page); font-size: 9pt; color: #888; }
+  }
+  @page :first { margin: 0; @top-center { content: none; } @bottom-center { content: none; } }
+  h1 { string-set: doctitle content(); font-size: 19pt; color: #222; margin: 0 0 0.4em; line-height: 1.35; text-align: left; }
+  h2 { font-size: 14pt; color: #222; border-bottom: 1.5px solid #333; padding-bottom: 0.15em; margin: 1.6em 0 0.6em; page-break-after: avoid; text-align: left; }
+  h3 { font-size: 12pt; color: #222; margin: 1.2em 0 0.4em; page-break-after: avoid; text-align: left; }
+  p { margin: 0.5em 0; }
+  ul, ol { margin: 0.4em 0; padding-left: 1.6em; }
+  li { margin: 0.25em 0; }
+  code { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 9.5pt; background: #f5f5f5; padding: 0 0.25em; word-break: break-word; }
+  a { color: #333; word-break: break-all; }
+  table { border-collapse: collapse; width: 100%; max-width: 100%; margin: 0.8em 0; font-size: 9.8pt; box-sizing: border-box; }
+  thead { display: table-header-group; }
+  thead tr { border-top: 1.6px solid #333; border-bottom: 1px solid #333; }
+  tbody tr:last-child { border-bottom: 1.6px solid #333; }
+  th, td { padding: 0.35em 0.5em; text-align: left; vertical-align: top; }
+  tr { page-break-inside: avoid; }
+  pre, figure, img, svg, blockquote, .equation { max-width: 100%; box-sizing: border-box; }
+  .katex-display { overflow-x: auto; margin: 0.7em 0; }
+  .equation { display: flex; align-items: baseline; }
+  .equation .eq-body { flex: 1; }
+  .equation::after { content: attr(data-label); color: #333; margin-left: 1em; }
+  .meta-table { width: auto; font-size: 10.5pt; }
+  .meta-table td { padding: 0.2em 1.2em 0.2em 0; }
+  .meta-table tr { border: none; }
+  .meta-table td:first-child { color: #666; white-space: nowrap; }
+  .note-box { border-left: 3px solid #333; padding-left: 1em; margin: 1em 0; background: #fafafa; }
+  .todo li { list-style: none; }
+  /* ---------- cover ---------- */
+  .cover { width: 210mm; height: 297mm; margin: 0; position: relative; overflow: hidden; page-break-after: always; background: white; }
+  .cover-content { position: absolute; top: 46%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 82%; }
+  .cover-code { font-size: 12pt; letter-spacing: 0.35em; color: #888; margin-bottom: 1.2cm; }
+  .cover-title { font-size: 24pt; font-weight: 700; color: #222; line-height: 1.4; margin-bottom: 0.9cm; }
+  .cover-sub { font-size: 13pt; color: #555; margin-bottom: 2.6cm; }
+  .cover-meta { font-size: 12pt; color: #333; line-height: 2.1; }
+  .cover-rule { width: 3.2cm; border-top: 2px solid #333; margin: 0 auto 1.6cm; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-content">
+    <div class="cover-code">ROPI - 2026 - 001</div>
+    <div class="cover-title">농업 보조 4륜차(ATV급) 바퀴 견인력 지도 웹 앱</div>
+    <div class="cover-sub">지반역학 모델 확정 및 비전문가 UX/3D 시각화 개발</div>
+    <div class="cover-rule"></div>
+    <div class="cover-meta">
+      <p>작성자: 신재호</p>
+      <p>작성일자: 2026-07-25</p>
+      <p>실험/시뮬레이션 ID: ROPI-APP-20260725</p>
+    </div>
+  </div>
+</div>
+
+<h1>연구노트: 농업 보조 4륜차(ATV급) 바퀴 견인력 지도 웹 앱 — 지반역학 모델 확정 및 비전문가 UX/3D 시각화 개발</h1>
+
+<table class="meta-table">
+  <tr><td>과제코드</td><td>ROPI</td><td>문서번호</td><td>ROPI-2026-001</td></tr>
+  <tr><td>작성일자</td><td>2026-07-25</td><td>작성자</td><td>신재호</td></tr>
+  <tr><td>관련 태그</td><td colspan="3">wheel-traction-map, Bekker–Wong, terramechanics, ATV</td></tr>
+  <tr><td>관련 저장소</td><td colspan="3">github.com/mastajh/wheel-traction-map (GitHub Pages: mastajh.github.io/wheel-traction-map)</td></tr>
+</table>
+
+<h2 id="sec1">1. 연구 목적 및 배경</h2>
+
+<h3>1.1 배경</h3>
+<p>ROPI 과제의 소형 농업 보조 4륜차(최대 ATV급, 총중량 30–300 kg)는 밭흙·점토·모래·논흙 등 무른 지반에서 주행해야 하며, 바퀴 지름 $D$와 폭 $b$이 주행 성능을 지배한다. 바퀴 치수 선정은 전형적인 지반역학(terramechanics) 문제이나, 설계자가 매번 데이터시트와 문헌을 뒤져 계산하기는 비현실적이다.</p>
+
+<h3>1.2 목적</h3>
+<p>Bekker–Wong 지반역학 모델에 기반해 <strong>바퀴 지름 × 폭 전 영역의 견인 성능을 한눈에 보는 대화형 지도(웹 앱)</strong>를 만들고, 비전문가도 사용할 수 있는 수준의 UX로 제공한다.</p>
+<ul>
+  <li>주행 모드: 바퀴 1개의 실효 견인력 $T = H - R_c$가 목표치에 도달하는 $(D, b)$ 영역 제시</li>
+  <li>정적 안정성 모드: 경사지에서의 안전 여유 배율 $SF$ 및 버틸 수 있는 최대 경사각 $\theta_{max}$ 제시</li>
+  <li>실제 판매 타이어 규격(ATV식·인치식·미터식)을 지도 위에 오버레이하고 규격별 판정 제공</li>
+  <li>선택/권장 바퀴를 파라메트릭 3D 메쉬로 렌더링(무늬별 형상 반영)</li>
+</ul>
+
+<h3>1.3 선행 검토와의 연계</h3>
+<p>지반 모델의 물리 파라미터는 전량 문헌값(Wong 2009 표)을 사용하되, 트레드(무늬) 보정과 논흙 파라미터는 가정치임을 명시하는 것을 원칙으로 한다(<a href="#sec5">§5.1</a> 참조).</p>
+
+<h2 id="sec2">2. 방법 및 설정</h2>
+
+<h3>2.1 지반 모델 (Bekker–Wong)</h3>
+<p><strong>압력–침하 관계</strong> (Bekker):</p>
+<div class="equation" data-label="(2-1)"><div class="eq-body">
+$$p(z)=\left(\frac{k_c}{b}+k_\varphi\right)z^n \equiv k\,z^n,\qquad k=\frac{k_c}{b}+k_\varphi$$
+</div></div>
+
+<p><strong>평형 침하량</strong>: 바퀴하중 $W$와 접지압 적분의 평형에서</p>
+<div class="equation" data-label="(2-2)"><div class="eq-body">
+$$z_0=\left[\frac{W}{b\,k\,\sqrt{D}\,\mathcal{I}(n)}\right]^{\frac{1}{n+0.5}},\qquad \mathcal{I}(n)=\int_0^1 (1-u^2)^n\,du=\frac{\sqrt{\pi}\;\Gamma(n+1)}{2\,\Gamma(n+\tfrac{3}{2})}$$
+</div></div>
+<p>$\Gamma$는 Lanczos 근사(계수 9개, $g=7$)로 계산한다. $z_0 \ge D/2$이면 완전 파묻힘으로 간주해 무효(null) 처리한다.</p>
+
+<p><strong>접지 패치 기하</strong> (강체 바퀴, 포물선 근사):</p>
+<div class="equation" data-label="(2-3)"><div class="eq-body">
+$$L=\sqrt{D z_0-z_0^2},\qquad A=b\,L,\qquad z(x)=\max\!\Big(0,\;z_0-\tfrac{(L-x)^2}{D}\Big)$$
+</div></div>
+
+<p><strong>전단 응력</strong> (Janosi–Hanamoto):</p>
+<div class="equation" data-label="(2-4)"><div class="eq-body">
+$$\tau(x)=\big(c+\sigma(x)\tan\delta\big)\left(1-e^{-s\,x/K}\right),\qquad \sigma(x)=k\,z(x)^n$$
+</div></div>
+<p>여기서 $s$는 슬립(헛도는 비율), $K$는 전단 변형 계수, $\delta$는 흙–바퀴 유효 마찰각이다.</p>
+
+<p><strong>주행 모드 실효 견인력</strong> (수치적분, 사다리꼴 $N=120$분할):</p>
+<div class="equation" data-label="(2-5)"><div class="eq-body">
+$$H=b\,(1+\lambda)\int_0^{L}\tau(x)\,dx,\qquad R_c=\frac{b\,k\,z_0^{\,n+1}}{n+1},\qquad T=H-R_c$$
+</div></div>
+<p>$H$는 총 추력(gross traction), $R_c$는 다짐 저항(compaction resistance), $\lambda$는 러그 부가 추력 계수다.</p>
+
+<p><strong>정적 안정성 모드</strong> (경사각 $\theta$, 차체 수평 유지·정적 하중):</p>
+<div class="equation" data-label="(2-6)"><div class="eq-body">
+$$N=W\cos\theta,\qquad F=W\sin\theta,\qquad H_{hold}=(1+\lambda)\big(c\,A+N\tan\delta\big)$$
+</div></div>
+<div class="equation" data-label="(2-7)"><div class="eq-body">
+$$SF=\frac{H_{hold}}{F},\qquad \theta_{max}:\;SF(\theta_{max})=1\ \text{(이분탐색 16회, } 0.5^\circ\!\sim\!85^\circ\text{)}$$
+</div></div>
+
+<h3>2.2 트레드(무늬) 모델</h3>
+<p>유효 마찰각 $\delta=m\,\varphi$와 부가 추력 $(1+\lambda)$의 2계수 모델. 근거: 흙–구조물 마찰비 $\delta/\varphi\approx0.5\sim0.9$ (Duncan &amp; Mokwa 2001; Fine 2011), 깊은 무늬에서는 무늬 끝에서 흙–흙 전단이 일어나 $\delta\to\varphi$ (Wong 2009 그루서 추력의 1차 근사).</p>
+<table>
+  <thead><tr><th>프리셋</th><th>$m$</th><th>$\lambda$</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>무늬 없음 (slick)</td><td>0.70</td><td>0.00</td><td>흙–고무/금속 마찰 하한 근처</td></tr>
+    <tr><td>일반 타이어 무늬 (rib)</td><td>0.85</td><td>0.10</td><td>원주 리브</td></tr>
+    <tr><td>농기계용 깊은 무늬 (ag-lug)</td><td>1.00</td><td>0.25</td><td>헤링본 러그, $\delta=\varphi$</td></tr>
+    <tr><td>논용 패들 (paddle)</td><td>1.00</td><td>0.40</td><td>축방향 패들, 무른 땅 전용 가정</td></tr>
+  </tbody>
+</table>
+<p>$\lambda$는 <strong>가정치</strong>이며 무른 땅에서 유효, 단단한 땅에서는 과대평가 가능성을 UI와 본 노트에 명시한다.</p>
+
+<h3>2.3 흙 물성 파라미터 (SI: N, m, Pa, rad)</h3>
+<p>문헌: J.Y. Wong, <i>Terramechanics and Off-Road Vehicle Engineering</i>, 2nd ed. (2009) 압력–침하·전단 파라미터 표.</p>
+<table>
+  <thead><tr><th>키</th><th>이름</th><th>$k_c$ (kN/m$^{n+1}$)</th><th>$k_\varphi$ (kN/m$^{n+2}$)</th><th>$n$</th><th>$c$ (kPa)</th><th>$\varphi$ (°)</th><th>$K$ (m)</th><th>출처</th></tr></thead>
+  <tbody>
+    <tr><td>loam</td><td>밭흙 (양토)</td><td>52.53</td><td>1127.97</td><td>0.9</td><td>4.83</td><td>20</td><td>0.025</td><td>Sandy loam, Michigan</td></tr>
+    <tr><td>clay</td><td>점토</td><td>13.19</td><td>692.15</td><td>0.5</td><td>4.14</td><td>13</td><td>0.010</td><td>Clayey soil</td></tr>
+    <tr><td>sand</td><td>마른 모래</td><td>0.99</td><td>1528.43</td><td>1.1</td><td>1.04</td><td>28</td><td>0.025</td><td>Dry sand, LLL</td></tr>
+    <tr><td>paddy</td><td>질퍽한 논흙</td><td>3.0</td><td>45.0</td><td>0.7</td><td>1.50</td><td>20</td><td>0.020</td><td><strong>추정치 (문헌값 아님)</strong></td></tr>
+  </tbody>
+</table>
+
+<h3>2.4 가이드선 함수 피팅</h3>
+<p>격자(46×41)에서 등값선(주행: $T=0$, $T=T_{goal}$, 침하비 $z_0/D=0.25$ / 안정성: $SF=1$, $SF=SF_{goal}$)을 열 단위 선형보간으로 추출하고, 로그–로그 최소제곱으로 거듭제곱 근사식을 얻는다.</p>
+<div class="equation" data-label="(2-8)"><div class="eq-body">
+$$b=\alpha\,D^{\beta},\qquad x_i=\ln D_i,\;\; y_i=\ln b_i$$
+$$\beta=\frac{n\sum x_i y_i-\sum x_i\sum y_i}{n\sum x_i^2-(\sum x_i)^2},\qquad \alpha=\exp\!\Big(\tfrac{\sum y_i-\beta\sum x_i}{n}\Big)$$
+</div></div>
+<p>피팅 최대 상대오차를 함께 표시해 근사 품질을 검증 가능하게 했다(통상 수 % 이내).</p>
+
+<h3>2.5 실제 타이어 규격 환산</h3>
+<table>
+  <thead><tr><th>표기</th><th>예시</th><th>환산 (mm)</th></tr></thead>
+  <tbody>
+    <tr><td>ATV식</td><td>25×8-12</td><td>$D=25.4\,d_{in}=635$, $\;b=25.4\,w_{in}=203$ (지름·폭 직접)</td></tr>
+    <tr><td>인치식</td><td>18.4-30</td><td>$D\approx25.4\,(d_{rim}+2\times0.85\,w_{in})$, $\;b=25.4\,w_{in}$</td></tr>
+    <tr><td>미터식</td><td>420/85R28</td><td>$D=25.4\,d_{rim}+2\,w_{mm}\,\tfrac{AR}{100}$, $\;b=w_{mm}$</td></tr>
+  </tbody>
+</table>
+<p>인치식의 단면고/폭비 0.85는 바이어스 농업용 타이어 실측 외경 기준 근사로, 데이터시트와 수 cm 차이가 날 수 있음을 앱 내에 고지한다.</p>
+
+<h3>2.6 3D 바퀴 미리보기 (파라메트릭 메쉬)</h3>
+<p>외부 라이브러리 없이 Plotly <code>mesh3d</code>만으로 생성한다.</p>
+<ul>
+  <li><strong>타이어/림/허브</strong>: 회전체(lathe) — 프로파일 $[r, y]$을 차축($y$축) 주위로 56분할 회전. 타이어 프로파일은 트레드면(폭의 중앙 60%)·숄더·사이드월을 구분</li>
+  <li><strong>무늬</strong>: 프리셋별 형상 — slick(없음) / rib(원주 리브 3줄, 높이 $0.022D$) / ag-lug(±42° 헤링본 러그 16쌍, 높이 $0.035D$) / paddle(축방향 패들 12개, 높이 $0.055D$). 러그는 접선–축 방향 기저로 방향 잡은 박스 메쉬</li>
+  <li><strong>지면</strong>: $z=-R_t$ 평면 사각형. <code>aspectmode: data</code>로 치수 비례 유지, <code>uirevision</code>으로 회전 상태 보존</li>
+</ul>
+
+<h3>2.7 실행 환경</h3>
+<ul>
+  <li>프런트엔드 단일 페이지: vanilla JS + Plotly.js 2.35.2 (CDN), 빌드 없음</li>
+  <li>배포: GitHub Pages (mastajh/wheel-traction-map)</li>
+  <li>계산 격자: $D$ 방향 46 × $b$ 방향 41, 슬라이더 입력은 160 ms 디바운스 후 재계산</li>
+  <li>단위: 계산 엔진은 SI(m)로 돌리고 화면에는 cm로 표시 (ATV급 스케일: $D, b \in [10, 100]$ cm, 총중량 30–300 kg, 바퀴 1개 하중 $W=Mg/4$ 균등 분배 가정)</li>
+</ul>
+
+<h2>3. 실험 및 개발 과정</h2>
+
+<h3>3.1 작업 경과 (시간 순)</h3>
+<table>
+<caption data-label="표 3-1">단계별 개발 및 검토 경과</caption>
+<thead>
+<tr><th style="width:6%">단계</th><th style="width:24%">작업</th><th style="width:36%">검토(분석) 결과</th><th style="width:34%">조치</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>앱 구조 파악</td><td>단일 HTML+JS 정적 앱. 계산은 <code>app.js</code>, UI는 <code>index.html</code>.</td><td>수정 범위를 파라미터·계층으로 한정</td></tr>
+<tr><td>2</td><td>기존 UI 검토</td><td>침하량 제한 토글, 편집 모달 등 양호. 트레드는 $m,\lambda$ 둘 다 쓰나 UI가 $m$만 노출해 정의 불일치.</td><td>트레드 물리량 재정의 결정</td></tr>
+<tr><td>3</td><td>툴팁 전수 검토</td><td>남하/남b 병기, "최소 트랙션" 모호, 제어 대상 혼동, 침하량 제한 토글 설명 부정확, 구동력 부호·클리핑 미명시.</td><td>전면 재작성 + 변수 칩 + 경고 배너 설계</td></tr>
+<tr><td>4</td><td><code>app.js</code> 파라미터·물리 수정</td><td>$z_0$ 클램프 과다(100~200 cm → 100 cm), H 모델 부호 버그(절삭 항만 있고 점착 항이 음수 부호), Crr 미분리, F/W에 H 잔존, 구동력 클램프 없음.</td><td>TREADS 4종 재정의, H 두 항, Crr $=0.04+0.005\,i$, F/W$=T$, H 클램프, $z_0$ 상한 100 cm, 타이어 표기 표준</td></tr>
+<tr><td>5</td><td>슬라이더 고정값 해소</td><td>차량 질량이 ±50% 고정(경향 조작 소지). 바퀴 지름·폭 범위 협소(지름 40–200 cm, 폭 10–100 cm).</td><td>질량 100–20,000 kg, 폭 3–100 cm, 지름 10–300 cm</td></tr>
+<tr><td>6</td><td>유틸·스타일·문구</td><td>mm 렌더링 중복, z₀ 리터럴 산재, 남b 폐기, 표기 2패턴.</td><td><code>dim()</code> 통일, SUBS 매핑, 선명도·출발점 문구 정리</td></tr>
+<tr><td>7</td><td>위성 배경 선택기</td><td>기존 Esri 단일 소스.</td><td>Esri/Google 2소스 + 자동 폐백(403/429/네트워크 오류, $z\ge 15$ Google 오류율 30%)</td></tr>
+<tr><td>8</td><td>1차 커밋·푸시</td><td>자동 GitHub Pages 배포 확인.</td><td>4개 파일 커밋 완료</td></tr>
+<tr><td>9</td><td>푸시 후 원격 검증</td><td>fetch+diff로 원격==로컬 확인 중 툴팁 오자 발견.</td><td>표현 재작성("타이어 규격을 선택하면…")으로 원천 해소</td></tr>
+<tr><td>10</td><td>수학적 검토 → SF 추가</td><td>모델 재검토 결과 성능 지표로 안전율 필요.</td><td>SF 맵(발판 정적 유지) + 최대 트랙션 지점 마커 ✚, $\theta_{max}$ 이분법</td></tr>
+</tbody>
+</table>
+
+<h3>3.2 오류 이력 (개발 중 발생)</h3>
+<table>
+<caption data-label="표 3-2">오류 이력 및 조치 내역</caption>
+<thead>
+<tr><th style="width:6%">#</th><th style="width:20%">분류</th><th style="width:37%">증상/원인</th><th style="width:37%">조치</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>정의 불일치</td><td>트레드 UI "m"이 실제 계산에서는 $\lambda$로 사용됨</td><td>TREADS $\{m,\lambda\}$ 명시적 재정의</td></tr>
+<tr><td>2</td><td>물리 모델</td><td>그리프 $H$가 절삭 항만 존재하고 점착 항 부호 오류</td><td>$H$ = 절삭 + 점착 두 항, 부호 교정</td></tr>
+<tr><td>3</td><td>물리 모델</td><td>구름저항이 견인력에 합산되어 다짐과 중복</td><td>$C_{rr}$(경사 함수)로 분리</td></tr>
+<tr><td>4</td><td>물리 모델</td><td>구동력 클램프 없이 음수 $F$가 성능 경사를 왜곡</td><td>$F=\min(F,\,T-R_r)$, 하한 0</td></tr>
+<tr><td>5</td><td>UI·표기</td><td>mm 렌더링 중복, z₀ 유니코드 산재, 남b 혼용</td><td><code>dim()</code>·SUBS 통일, 남b 폐기</td></tr>
+<tr><td>6</td><td>외부 서비스</td><td>위성 타일 403/429/네트워크 오류, 고배율 Google 실패</td><td>소스 선택 + 자동 폐백</td></tr>
+<tr><td>7</td><td>전사(transcription)</td><td>푸시 반복마다 툴팁 오자 재생성</td><td>문장 재작성 + push 후 fetch/diff 검증</td></tr>
+<tr><td>8</td><td>오타</td><td>"남b" 잔존</td><td>전면 재작성으로 제거</td></tr>
+<tr><td>9</td><td>타입</td><td>중국어 문자 "压实" 유입</td><td>한국어 "다짐 저항"으로 교정</td></tr>
+</tbody>
+</table>
+
+<h2>4. 결과</h2>
+<ul>
+<li><strong>트레드 4종 물리 기반 정의</strong>: 민무늬/리브/농업용 러그/패들을 절삭 계수 $m$과 전단 변형 계수 $\lambda$로 구분. $m\cdot\lambda$의 수치는 연구자 재검토 필요.</li>
+<li><strong>견인력 모델 정비</strong>: 그리프 $H$를 절삭과 점착의 합으로 정리하고, 다짐 저항 $R_c$와 구름저항 $R_r$을 분리하여 $F/W=T$로 명확화.</li>
+<li><strong>침하량 상한 현실화</strong>: $z_0$ 클램프를 100 cm로 하향해 극단 조합의 비현실적 침하를 제한.</li>
+<li><strong>차량 스펙 확장</strong>: 질량 100–20,000 kg, 바퀴 폭 3–100 cm, 바퀴 지름 10–300 cm.</li>
+<li><strong>성능 지표 추가</strong>: 안전율 SF(발판 정적 유지 기준) 맵과 최대 트랙션 지점 ✚ 마커.</li>
+<li><strong>UI·문구 품질</strong>: 툴팁 전면 재작성, 변수 칩 병기, 경고 배너, 위성 배경 선택 + 자동 폐백.</li>
+<li><strong>타이어 표기</strong>: 지름×폭 cm로 통일. 인치 규격(24×12-12)은 변환식 병기.</li>
+</ul>
+
+<h2>5. 분석 및 고찰 (검토 과정 상세)</h2>
+
+<h3>5.1 물리·모델 가정의 검토</h3>
+<ul>
+<li><strong>Bekker–Wong 적용성</strong>: 정적·준정적, 균질 등방성 토질 가정. 점진적 타이어–지반 상호작용(다통과, 배수, 동적 하중)은 미반영.</li>
+<li><strong>패치 균등분할</strong>: $\theta_j$를 균등 각도로 나누는 근사는 접촉압 분포를 단순화. $\theta_{max}$ 이분법으로 $W=\sum p\,b\,l\cos\theta$를 맞추는 절차는 타당하나 반복 수렴성은 파라미터 조합에 민감.</li>
+<li><strong>전단 응답</strong>: Janosi–Hanamoto 지수형으로 점근적 포화 가정. $K$는 토질별 고정값으로 두어 트레드 돌기 형상 효과를 $m,\lambda$로 흡수.</li>
+<li><strong>저항 분리</strong>: 다짐 저항 $R_c$와 구름저항 $R_r$의 중복 계상을 막기 위해 $C_{rr}$을 경사 $i$의 함수로 분리. $i&gt;0$ 오륧에서 $R_r$ 증가는 구륧 저항 증대의 물리적 경향과 일치.</li>
+<li><strong>안전율 해석</strong>: SF는 "정적 유지" 관점의 하한 지표. SF&lt;1은 정지 상태에서도 미끄러짐 위험을 뜻하나, 관성·조향 등 동적 요인은 포함하지 않음.</li>
+</ul>
+
+<h3>5.2 수치·단위 검토</h3>
+<ul>
+<li><strong>단위 일관성</strong>: 계산은 SI(m), 표시는 cm. mm 렌더링은 <code>dim()</code>으로 통일해 "1,000 cm" 같은 비현실 표기를 제거.</li>
+<li><strong>파라미터 범위</strong>: $k_c, k_\varphi, n, c, \varphi, K$는 Wong 표준값 유지. 토질 4종(양토/점토/모래/논흙) 외 확장은 추후 데이터 필요.</li>
+<li><strong>클리핑 영향</strong>: $z_0=100$ cm 상한과 $F$ 하한 0은 극단 영역의 왜곡을 줄이지만, 경계 부근 등고선의 불연속 가능성은 시각 검토 필요.</li>
+<li><strong>트레드 정렬</strong>: $T_{slick} &lt; T_{rib} &lt; T_{aglug} &lt; T_{paddle}$ (저마찰 토질에서 성립)로 물리적 기대와 부합. 민무늬가 항상 최하인지는 파라미터 조합별 추가 확인이 필요.</li>
+</ul>
+
+<h3>5.3 공학적 타당성·위험</h3>
+<ul>
+<li>토질 매개변수와 트레드 계수의 불확도가 결과에 직접 반영되므로 절대값보다 상대 경향 해석이 적합.</li>
+<li>경사도 $i$와 트랙션 $T$의 결합 효과는 지도 위 공간 패턴으로 타당하게 재현됨.</li>
+<li>잔여 리스크: 고배율 위성 타일 폐백 빈도, 극단 경사에서의 $\theta_{max}$ 수렴 실패, 저마찰 토질에서 $H&lt;0$ 조합의 물리 해석.</li>
+</ul>
+
+<h3>5.4 사용자 경험·해석 관점 검토</h3>
+<ul>
+<li>남하/남b 병기와 "최소 트랙션" 같은 모호 표현을 제거해 비전문가의 오독 가능성을 낮춤.</li>
+<li>파라미터 툴팁에 수식 변수 칩을 병기해 모델–입력 연결을 명시.</li>
+<li>슬라이더 범위 확장으로 과도한 경향 조작(고정 ±50%)을 제거하고 사용자 선택권을 확대.</li>
+</ul>
+
+<h2>6. 결론 및 다음 단계</h2>
+<h3>6.1 결론</h3>
+<p>본 작업은 Bekker–Wong 기반 바퀴 견인 시뮬레이션의 물리 정의와 UI를 정합화하고, 안전율 기반 성능 지표를 추가해 해석 신뢰도를 높였다. 문서화되지 않았던 계산 절차를 수식으로 고정해 연구보고서에 직접 인용 가능한 상태로 정리했다.</p>
+<h3>6.2 다음 단계(TODO)</h3>
+<ul>
+<li>☐ 트레드별 $m\cdot\lambda$ 값의 실측·문헌 기반 보정</li>
+<li>☐ 토질 매개변수 데이터베이스 확장(지역별 실측)</li>
+<li>☐ $\theta_{max}$ 수렴 실패 및 $H&lt;0$ 조합의 경계 처리 로깅</li>
+<li>☐ "출발 한계선"(SF=1 등고선) 맵 오버레이 추가</li>
+<li>☐ 저마찰 토질에서 트레드 정렬($m,\lambda$) 추가 검증</li>
+<li>☐ 모바일·저해상도 툴팁 가독성 점검</li>
+<li>☐ 단위 변환(인치↔cm) 자동 표기 일관성 테스트</li>
+</ul>
+
+<h2>7. 산출물 및 참고자료</h2>
+<ul>
+<li>코드: <code>index.html</code>, <code>app.js</code>, <code>style.css</code>, <code>libs/leaflet.js</code></li>
+<li>리포지터리: <code>mastajh/wheel-traction-map</code> (main, 자동 GitHub Pages 배포)</li>
+<li>본 노트: <code>research_note/ROPI/20260725_연구노트.md</code></li>
+</ul>
+<p>참고 문헌</p>
+<ol>
+<li>Wong, J. Y. (2008). <em>Theory of Ground Vehicles</em> (4th ed.). Wiley.</li>
+<li>Bekker, M. G. (1969). <em>Introduction to Terrain-Vehicle Systems</em>. University of Michigan Press.</li>
+<li>Janosi, Z., &amp; Hanamoto, B. (1961). The analytical determination of drawbar pull as a function of slip for tracked vehicles in deformable soils. <em>Proc. 1st Int. Conf. on Terrain-Vehicle Systems</em>.</li>
+</ol>
+
+<h2>8. 그림 목록</h2>
+<p>별도 그림 파일 없음(앱 스크린샷 미첨부). 수식 및 표로 대체.</p>
+
+<script>
+renderMathInElement(document.body, {
+  delimiters: [
+    {left: '$$', right: '$$', display: true},
+    {left: '$', right: '$', display: false}
+  ],
+  throwOnError: false
+});
+</script>
+</body>
+</html>
