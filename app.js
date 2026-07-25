@@ -170,10 +170,34 @@ function fitPower(Dl, bl) {
   return { alpha, beta, maxErr };
 }
 
+/* ---------- 실제 타이어 규격 환산 ----------
+ * 인치식 "18.4-30" : 폭 18.4 in, 림 30 in → 지름 ≈ (림 + 2 × 0.85 × 폭)
+ *                    (바이어스 농업용 타이어의 단면고/폭 비 ≈ 0.85, 실측 외경 기준)
+ * 미터식 "420/85R28": 폭 420 mm, 편평비 85%, 림 28 in → 지름 = 림 + 2 × 폭 × 0.85
+ * ※ 규격식 환산 근사치 — 제조사 데이터시트 외경과 수 cm 차이 가능 */
+function parseTire(code) {
+  const c = String(code).trim().toUpperCase().replace(/\s+/g, "");
+  let m = c.match(/^(\d{3})\/(\d{2})R(\d{1,2})$/);          // 미터식: 420/85R28
+  if (m) {
+    const W = +m[1], AR = +m[2], rim = +m[3];
+    return { code: c, D: (rim * 25.4 + 2 * W * AR / 100) / 1000, b: W / 1000 };
+  }
+  m = c.match(/^(\d{1,2}(?:\.\d+)?)-(\d{1,2})$/);            // 인치식: 18.4-30
+  if (m) {
+    const W = +m[1], rim = +m[2];
+    return { code: c, D: (rim + 2 * 0.85 * W) * 0.0254, b: W * 0.0254 };
+  }
+  return null;
+}
+const TIRE_PRESETS = ["11.2-24", "12.4-28", "13.6-28", "16.9-28", "18.4-30", "18.4-34",
+                      "320/85R24", "420/85R28", "480/70R30", "520/85R38"];
+const customTires = [];
+
 /* ---------- 상태 ---------- */
 const state = { mode: "drive", soil: "loam", tread: "aglug", mass: 1000, slip: 0.20, tgt: 0.15,
                 slope: 12, sfTgt: 1.5,
-                dmin: 0.30, dmax: 1.20, bmin: 0.10, bmax: 0.50 };
+                dmin: 0.30, dmax: 1.20, bmin: 0.10, bmax: 0.50,
+                tireSel: new Set(["11.2-24", "320/85R24"]) };
 
 const $ = id => document.getElementById(id);
 const fmt = (v, d = 2) => v.toFixed(d);
@@ -210,6 +234,101 @@ const MODE_TXT = {
   },
 };
 
+/* ---------- 타이어 선택 관련 ---------- */
+function allTires() { return [...TIRE_PRESETS, ...customTires]; }
+function selectedTires() {
+  return allTires().filter(c => state.tireSel.has(c)).map(parseTire).filter(Boolean);
+}
+
+/* 타이어 (D,b)에서의 현재 모드 성능값 */
+function tireValue(D, b) {
+  const soil = SOILS[state.soil], tread = TREADS[state.tread];
+  const W = state.mass * 9.81 / 4;
+  if (state.mode === "drive") {
+    const r = wheelTraction(W, D, b, soil, state.slip, tread);
+    return r ? r.T : null;
+  }
+  const th = state.slope * Math.PI / 180;
+  const Nn = W * Math.cos(th), Fv = W * Math.sin(th);
+  const cp = contactPatch(Nn, D, b, soil);
+  if (!cp) return null;
+  const Hh = (soil.c * cp.A + Nn * Math.tan(soil.phi * tread.m)) * (1 + tread.lug);
+  return Hh / Fv;
+}
+
+/* 타이어별 판정 문구 */
+function tireVerdict(D, b) {
+  const soil = SOILS[state.soil], tread = TREADS[state.tread];
+  const W = state.mass * 9.81 / 4;
+  if (state.mode === "drive") {
+    const r = wheelTraction(W, D, b, soil, state.slip, tread);
+    if (!r) return { txt: "완전히 파묻히는 크기", cls: "warn" };
+    const goal = state.tgt * W;
+    const st = r.T >= goal ? ["목표 달성 ✓", "ok"] : r.T >= 0 ? ["움직이지만 목표 미달", ""] : ["못 움직임 ✗", "warn"];
+    return { txt: `미는 힘 ${fmt(r.T, 0)} N · ${st[0]}`, cls: st[1] };
+  }
+  const th = state.slope * Math.PI / 180;
+  const Nn = W * Math.cos(th), Fv = W * Math.sin(th);
+  const cp = contactPatch(Nn, D, b, soil);
+  if (!cp) return { txt: "완전히 파묻히는 크기", cls: "warn" };
+  const Hh = (soil.c * cp.A + Nn * Math.tan(soil.phi * tread.m)) * (1 + tread.lug);
+  const sf = Hh / Fv;
+  const tm = thetaMax(W, D, b, soil, tread);
+  const st = sf >= state.sfTgt ? ["기준 만족 ✓", "ok"] : sf >= 1 ? ["버티지만 여유 부족", ""] : ["미끄러짐 ✗", "warn"];
+  return { txt: `안전 여유 ${fmt(sf, 2)}배 · 최대 경사 ${tm === null ? "—" : fmt(tm, 0) + "°"} · ${st[0]}`, cls: st[1] };
+}
+
+function renderTireList() {
+  const box = $("tireList");
+  box.innerHTML = allTires().map(c => {
+    const t = parseTire(c);
+    if (!t) return "";
+    const vd = tireVerdict(t.D, t.b);
+    const on = state.tireSel.has(c);
+    return `<label class="tire-item${on ? " on" : ""}">
+      <input type="checkbox" data-code="${c}"${on ? " checked" : ""}><b>${c}</b>
+      <span class="tr">지름 ${fmt(t.D)} m · 폭 ${fmt(t.b)} m → <span class="${vd.cls}">${vd.txt}</span></span>
+    </label>`;
+  }).join("");
+  box.querySelectorAll("input").forEach(cb => cb.addEventListener("change", () => {
+    if (cb.checked) state.tireSel.add(cb.dataset.code); else state.tireSel.delete(cb.dataset.code);
+    update();
+  }));
+}
+
+function addTire() {
+  const inp = $("tireCode"), err = $("tireErr");
+  const t = parseTire(inp.value);
+  if (!t) {
+    err.textContent = "규격을 읽지 못했습니다 — 예: 18.4-30 또는 420/85R28 형식으로 입력해 주세요";
+    err.style.display = "block";
+    return;
+  }
+  err.style.display = "none";
+  if (!allTires().includes(t.code)) customTires.push(t.code);
+  state.tireSel.add(t.code);
+  inp.value = "";
+  update();
+}
+
+function fitRangeToTires() {
+  const sel = selectedTires();
+  if (!sel.length) return;
+  const Ds = sel.map(t => t.D), bs = sel.map(t => t.b);
+  const step = v => Math.round(v * 20) / 20;                       // 0.05 간격으로 반올림
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const dmin = clamp(step(Math.min(...Ds) * 0.90), 0.20, 1.00);
+  const dmax = clamp(step(Math.max(...Ds) * 1.10), 0.40, 2.20);
+  const bmin = clamp(step(Math.min(...bs) * 0.80), 0.05, 0.40);
+  const bmax = clamp(step(Math.max(...bs) * 1.25), 0.20, 0.80);
+  state.dmin = dmin; state.dmax = dmax; state.bmin = bmin; state.bmax = bmax;
+  $("dmin").value = Math.round(dmin * 100); $("oDmin").textContent = fmt(dmin) + " m";
+  $("dmax").value = Math.round(dmax * 100); $("oDmax").textContent = fmt(dmax) + " m";
+  $("bmin").value = Math.round(bmin * 100); $("oBmin").textContent = fmt(bmin) + " m";
+  $("bmax").value = Math.round(bmax * 100); $("oBmax").textContent = fmt(bmax) + " m";
+  update();
+}
+
 /* ---------- 메인 계산 + 그리기 ---------- */
 function update() {
   if (state.dmin >= state.dmax) state.dmax = state.dmin + 0.05;
@@ -239,6 +358,7 @@ function update() {
   showEq("eq1", "eq1d", f1, txt.d1, stats, lv1);
   showEq("eq2", "eq2d", f2, "이 선 아래는 바퀴가 지름의 4분의 1 이상 깊이 파묻혀서 움직이기 급격히 어려워집니다.", null, null);
   showRec(g, l1, hold, stats, lv1);
+  renderTireList();
 }
 
 /* 경계선 위의 표면 높이 값 */
@@ -278,6 +398,20 @@ function draw3d(g, l0, l1, l2, hold) {
     type: "scatter3d", mode: "lines", x: line.D, y: line.b, z: lineZ(g, line),
     line: { color, width: 7 }, name, hoverinfo: "name", showlegend: true,
   });
+  /* 실제 타이어 마커 */
+  const tires = selectedTires();
+  const tvals = tires.map(t => tireValue(t.D, t.b));
+  const tOK = tires.filter((t, i) => tvals[i] !== null);
+  const tireTrace = {
+    type: "scatter3d", mode: "markers+text",
+    x: tOK.map(t => t.D), y: tOK.map(t => t.b),
+    z: tOK.map(t => tireValue(t.D, t.b)),
+    text: tOK.map(t => t.code), textposition: "top center",
+    textfont: { size: 10, color: "#1d1d1f" },
+    marker: { size: 5, color: "#ffffff", line: { color: "#1d1d1f", width: 1.5 } },
+    name: "실제 타이어", showlegend: false,
+    hovertemplate: "%{text}<br>지름 %{x:.2f} m · 폭 %{y:.2f} m<extra></extra>",
+  };
   const layout = { ...PLOTLT, margin: { l: 0, r: 0, t: 10, b: 0 },
     legend: { x: 0.02, y: 0.95, bgcolor: "#ffffffd9", font: { size: 12, color: "#1d1d1f" },
               bordercolor: "#e0e0e0", borderwidth: 1 },
@@ -290,7 +424,8 @@ function draw3d(g, l0, l1, l2, hold) {
   Plotly.react("plot3d", [surf,
     mk(l0, LC.red, hold ? "미끄러짐 경계" : "움직임 경계"),
     mk(l1, LC.blue, hold ? "목표 안전 여유선" : "목표 견인력선"),
-    mk(l2, LC.teal, "파묻힘 한계선")], layout, CFG);
+    mk(l2, LC.teal, "파묻힘 한계선"),
+    tireTrace], layout, CFG);
 }
 
 function draw2d(g, l0, l1, l2, f0, f1, f2, hold) {
@@ -328,6 +463,17 @@ function draw2d(g, l0, l1, l2, f0, f1, f2, hold) {
     return { type: "scatter", mode: "lines", x: xs, y: ys,
              line: { color, width: 1.5, dash: "dash" }, hoverinfo: "skip", showlegend: false };
   };
+  /* 실제 타이어 마커 */
+  const tires = selectedTires();
+  const tireTrace = {
+    type: "scatter", mode: "markers+text",
+    x: tires.map(t => t.D), y: tires.map(t => t.b),
+    text: tires.map(t => t.code), textposition: "top center",
+    textfont: { size: 11, color: "#1d1d1f" },
+    marker: { size: 10, color: "#ffffff", line: { color: "#1d1d1f", width: 2 }, symbol: "circle" },
+    hovertemplate: "%{text}<br>지름 %{x:.2f} m · 폭 %{y:.2f} m<extra></extra>",
+    showlegend: false,
+  };
   const layout = { ...PLOTLT, margin: { l: 55, r: 10, t: 24, b: 45 },
     title: { text: txt.t2d, font: { size: 13, color: "#86868b" } },
     showlegend: false,
@@ -336,7 +482,8 @@ function draw2d(g, l0, l1, l2, f0, f1, f2, hold) {
   Plotly.react("plot2d", [heat,
     solid(l0, LC.red), fitLine(f0, "#ff3b3077"),
     solid(l1, LC.blue), fitLine(f1, "#0066cc77"),
-    solid(l2, LC.teal), fitLine(f2, "#30b0c777")], layout, CFG);
+    solid(l2, LC.teal), fitLine(f2, "#30b0c777"),
+    tireTrace], layout, CFG);
 }
 
 function showEq(fId, dId, f, desc, stats, level) {
@@ -471,7 +618,7 @@ document.querySelectorAll(".tread-btn").forEach(btn => {
 });
 
 bind("mass", "oMass", v => `${v} kg`, v => state.mass = v);
-bind("slip", "oSlip", v => `${v}%", v => state.slip = v / 100);
+bind("slip", "oSlip", v => `${v}%`, v => state.slip = v / 100);
 bind("tgt", "oTgt", v => `${v}%`, v => {
   state.tgt = v / 100;
   if (state.mode === "drive")
@@ -487,6 +634,10 @@ bind("dmin", "oDmin", v => fmt(v / 100) + " m", v => state.dmin = v / 100);
 bind("dmax", "oDmax", v => fmt(v / 100) + " m", v => state.dmax = v / 100);
 bind("bmin", "oBmin", v => fmt(v / 100) + " m", v => state.bmin = v / 100);
 bind("bmax", "oBmax", v => fmt(v / 100) + " m", v => state.bmax = v / 100);
+
+$("tireAdd").addEventListener("click", addTire);
+$("tireCode").addEventListener("keydown", e => { if (e.key === "Enter") addTire(); });
+$("tireFit").addEventListener("click", fitRangeToTires);
 
 /* ---------- 호버 안내 툴팁 ---------- */
 const tipEl = $("tip");

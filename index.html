@@ -61,8 +61,27 @@
   input[type=range]::-moz-range-track{height:3px;background:var(--chip);border-radius:2px}
   input[type=range]::-moz-range-thumb{width:17px;height:17px;border:1px solid rgba(0,0,0,.12);
     border-radius:50%;background:#fff}
+  /* ---------- 실제 타이어 규격 비교 ---------- */
+  .tire-note{font-size:11.5px;color:var(--faint);line-height:1.6;margin-bottom:10px;font-family:var(--mono)}
+  .tire-row{display:flex;gap:7px;margin-bottom:10px}
+  .tire-row input{flex:1;border:1px solid var(--hairline);border-radius:9px;padding:7px 10px;
+    font-size:13.5px;font-family:var(--mono);min-width:0;background:var(--canvas);color:var(--ink)}
+  .tire-row input:focus{outline:2px solid var(--blue-focus);outline-offset:-1px}
+  .tire-row button{border:1px solid var(--hairline);background:var(--canvas);border-radius:9px;
+    padding:7px 13px;font-size:13.5px;cursor:pointer;color:var(--blue);font-weight:600}
+  .tire-err{display:none;font-size:12px;color:var(--red);margin:-4px 0 8px}
+  .tire-item{display:block;border:1px solid var(--hairline);border-radius:11px;padding:8px 12px;
+    margin-bottom:6px;cursor:pointer;font-size:14px;background:var(--canvas)}
+  .tire-item input{margin-right:7px;accent-color:var(--blue)}
+  .tire-item .tr{display:block;font-size:12px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+  .tire-item .ok{color:#2f9e44;font-weight:600}
+  .tire-item .warn{color:#c2261f;font-weight:600}
+  .tire-item.on{border:2px solid var(--blue-focus);padding:7px 11px}
+  .fit-btn{width:100%;margin-top:4px;border:1px solid var(--hairline);background:var(--canvas);
+    border-radius:9999px;padding:9px 14px;font-size:13.5px;color:var(--blue);font-weight:600;cursor:pointer}
   .legend{padding:12px 0 2px;font-size:13.5px;color:var(--muted);line-height:2.1}
   .legend i{display:inline-block;width:14px;height:3px;margin-right:8px;vertical-align:middle;border-radius:2px}
+  .legend i.dot{width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid var(--ink)}
   .model-note{border-top:1px solid var(--divider);margin-top:14px;padding-top:12px;
     font-family:var(--mono);font-size:12px;color:var(--faint);line-height:1.9}
   .model-note .src{font-family:inherit;font-size:11.5px;line-height:1.7;display:block;margin-top:8px}
@@ -145,17 +164,29 @@
       <div class="row"><label data-tip="지도 가로축에 표시할 바퀴 지름 범위의 시작 값입니다.">가장 작은 바퀴 지름</label><output id="oDmin">0.30 m</output></div>
       <input type="range" id="dmin" min="20" max="100" step="5" value="30">
       <div class="row"><label data-tip="지도 가로축에 표시할 바퀴 지름 범위의 끝 값입니다.">가장 큰 바퀴 지름</label><output id="oDmax">1.20 m</output></div>
-      <input type="range" id="dmax" min="40" max="150" step="5" value="120">
+      <input type="range" id="dmax" min="40" max="220" step="5" value="120">
       <div class="row"><label data-tip="지도 세로축에 표시할 바퀴 폭 범위의 시작 값입니다.">가장 좁은 바퀴 폭</label><output id="oBmin">0.10 m</output></div>
       <input type="range" id="bmin" min="5" max="40" step="5" value="10">
       <div class="row"><label data-tip="지도 세로축에 표시할 바퀴 폭 범위의 끝 값입니다.">가장 넓은 바퀴 폭</label><output id="oBmax">0.50 m</output></div>
-      <input type="range" id="bmax" min="20" max="60" step="5" value="50">
+      <input type="range" id="bmax" min="20" max="80" step="5" value="50">
+    </div>
+    <div class="grp">
+      <h2 data-tip="실제 판매되는 타이어 규격을 고륵면 지도 위에 위치가 표시되고, 그 크기일 때의 성능도 바로 계산됩니다. 규격 번호만 알면 지름과 폭을 따로 찾을 필요가 없습니다.">실제 타이어 규격 비교</h2>
+      <div class="tire-note">규격 읽는 법 — 18.4-30: 폭 18.4인치 · 림 30인치 / 420/85R28: 폭 420mm · 편평비 85% · 림 28인치. 지름은 규격식 환산 근사치이며 제조사 데이터시트와 수 cm 차이가 날 수 있습니다.</div>
+      <div class="tire-row">
+        <input type="text" id="tireCode" placeholder="예: 18.4-30 또는 420/85R28">
+        <button id="tireAdd">추가</button>
+      </div>
+      <div class="tire-err" id="tireErr"></div>
+      <div id="tireList"></div>
+      <button class="fit-btn" id="tireFit">선택한 타이어가 보이게 지도 범위 맞추기</button>
     </div>
     <div class="legend">
       <i style="background:var(--red)"></i><span id="lg0">움직일 수 있는 최소 조건</span><br>
       <i style="background:var(--blue)"></i><span id="lg1">목표 견인력 달성선</span><br>
       <i style="background:var(--teal)"></i>파묻힘 한계 — 지름의 25% 이상<br>
-      <i style="background:#aeaeb2"></i>점선 — 근사 공식 b = α·D<sup>β</sup>
+      <i style="background:#aeaeb2"></i>점선 — 근사 공식 b = α·D<sup>β</sup><br>
+      <i class="dot"></i>실제 타이어 규격 위치
     </div>
     <div class="model-note">
       계산 근거 (전공자 확인용)<br>
