@@ -445,7 +445,7 @@ function fitRangeToTires() {
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const dmin = clamp(step(Math.min(...Ds) * 0.90), 0.10, 1.00);
   const dmax = clamp(step(Math.max(...Ds) * 1.10), 0.10, 1.00);
-  const bmin = clamp(step(Math.min(...bs) * 0.80), 0.10, 1.00);
+  const bmin = clamp(step(Math.min(...bs) * 0.80), 0.03, 1.00);
   const bmax = clamp(step(Math.max(...bs) * 1.25), 0.10, 1.00);
   state.dmin = dmin; state.dmax = dmax; state.bmin = bmin; state.bmax = bmax;
   $("dmin").value = Math.round(dmin * 100); $("oDmin").textContent = Math.round(dmin * 100) + " cm";
