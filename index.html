@@ -108,6 +108,13 @@
       <button class="soil-btn" data-soil="paddy">습한 논흙<small>kc 3.0 · kφ 45.0 · n 0.7 · c 1.5kPa · φ 20°</small></button>
     </div>
     <div class="grp">
+      <h2>트레드</h2>
+      <button class="soil-btn tread-btn" data-tread="slick">매끈 강성륜<small>δ = 0.70φ · 러그 없음</small></button>
+      <button class="soil-btn tread-btn" data-tread="rib">일반 트레드<small>δ = 0.85φ · 부가견인 +10%</small></button>
+      <button class="soil-btn tread-btn on" data-tread="aglug">농업용 러그<small>δ = 1.00φ · 부가견인 +25%</small></button>
+      <button class="soil-btn tread-btn" data-tread="paddle">패들 러그<small>δ = 1.00φ · 부가견인 +40%</small></button>
+    </div>
+    <div class="grp">
       <h2>차량 · 접지 조건</h2>
       <div class="row"><label>총중량</label><output id="oMass">1000 kg</output></div>
       <input type="range" id="mass" min="300" max="2500" step="50" value="1000">
@@ -145,7 +152,8 @@
       p = (kc/b + kφ)·zⁿ (Bekker)<br>
       τ = (c + σ·tanφ)·(1 − e^(−j/K)) (Janosi–Hanamoto)<br>
       순견인력 = 총견인력 H − 압실저항 Rc<br>
-      버티기 SF = (c·A + N·tanφ) / (W·sinθ)
+      버티기 SF = (c·A + N·tanφ) / (W·sinθ)<br>
+      트레드: δ = m·φ, H × (1 + 러그계수)
     </div>
   </aside>
   <div id="main">
