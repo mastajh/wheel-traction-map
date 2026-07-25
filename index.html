@@ -17,74 +17,75 @@
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%;background:var(--parchment);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;
-    font-size:13px;overflow:hidden}
+    font-size:15px;overflow:hidden}
   button{font-family:inherit;transition:transform .1s}
   button:active{transform:scale(.95)}
   :focus-visible{outline:2px solid var(--blue-focus);outline-offset:1px}
   /* ---------- header : global-nav (true black, 44px) ---------- */
-  header{height:44px;display:flex;align-items:center;gap:14px;padding:0 20px;background:#000}
-  header h1{font-size:14px;font-weight:600;color:#fff;letter-spacing:-0.2px;white-space:nowrap}
-  header .sub{font-size:12px;color:#ccc;letter-spacing:-0.12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  header .badge{margin-left:auto;font-size:12px;font-weight:600;color:var(--ink);
-    background:rgba(210,210,215,.85);padding:5px 14px;border-radius:9999px;white-space:nowrap}
+  header{height:44px;display:flex;align-items:center;gap:16px;padding:0 22px;background:#000}
+  header h1{font-size:16px;font-weight:600;color:#fff;letter-spacing:-0.2px;white-space:nowrap}
+  header .sub{font-size:13.5px;color:#ccc;letter-spacing:-0.12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  header .badge{margin-left:auto;font-size:13.5px;font-weight:600;color:var(--ink);
+    background:rgba(210,210,215,.85);padding:5px 15px;border-radius:9999px;white-space:nowrap}
   /* ---------- layout ---------- */
   #wrap{display:flex;height:calc(100% - 44px)}
-  #side{width:300px;min-width:300px;border-right:1px solid var(--hairline);background:var(--canvas);
-    overflow-y:auto;padding:20px 20px 32px}
+  #side{width:332px;min-width:332px;border-right:1px solid var(--hairline);background:var(--canvas);
+    overflow-y:auto;padding:22px 22px 34px}
   #main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--parchment)}
   #plot3d{flex:1.35;min-height:0}
   #lower{flex:1;display:flex;border-top:1px solid var(--hairline);min-height:0}
   #plot2d{flex:1.25;min-width:0}
-  #guide{flex:1;border-left:1px solid var(--hairline);overflow-y:auto;padding:16px 18px;background:var(--canvas)}
+  #guide{flex:1;border-left:1px solid var(--hairline);overflow-y:auto;padding:18px 20px;background:var(--canvas)}
   /* ---------- controls ---------- */
-  .grp{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--divider)}
+  .grp{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--divider)}
   .grp:last-of-type{border-bottom:none;padding-bottom:0}
-  .grp h2{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:-0.12px;margin-bottom:10px}
+  .grp h2{font-size:13.5px;font-weight:600;color:var(--muted);letter-spacing:-0.12px;margin-bottom:11px}
   /* configurator-option-chip grammar */
   .soil-btn{display:block;width:100%;text-align:left;background:var(--canvas);border:1px solid var(--hairline);
-    color:var(--ink);padding:9px 13px;margin-bottom:6px;border-radius:11px;cursor:pointer;
-    font-size:13px;transition:border-color .15s,color .15s,background .15s}
-  .soil-btn small{display:block;color:var(--muted);font-size:10px;margin-top:3px;font-family:var(--mono)}
-  .soil-btn.on{border:2px solid var(--blue-focus);padding:8px 12px;color:var(--blue)}
+    color:var(--ink);padding:10px 14px;margin-bottom:7px;border-radius:11px;cursor:pointer;
+    font-size:15px;transition:border-color .15s,color .15s,background .15s}
+  .soil-btn small{display:block;color:var(--muted);font-size:12px;margin-top:4px;font-family:var(--mono)}
+  .soil-btn.on{border:2px solid var(--blue-focus);padding:9px 13px;color:var(--blue)}
   .soil-btn.on small{color:var(--blue)}
   /* 해석 모드: 선택 시 button-primary (filled blue pill grammar) */
-  .mode-btn{border-radius:9999px;padding:10px 14px}
-  .mode-btn.on{background:var(--blue);border:2px solid var(--blue);padding:9px 13px;color:#fff}
+  .mode-btn{border-radius:9999px;padding:11px 15px}
+  .mode-btn.on{background:var(--blue);border:2px solid var(--blue);padding:10px 14px;color:#fff}
   .mode-btn.on small{color:rgba(255,255,255,.75)}
-  .row{display:flex;justify-content:space-between;align-items:baseline;margin:12px 0 3px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;margin:13px 0 4px}
   .row label{color:var(--ink-80)}
-  .row output{font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-  input[type=range]{width:100%;height:20px;-webkit-appearance:none;background:transparent;cursor:pointer}
+  .row output{font-size:15px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;height:22px;-webkit-appearance:none;background:transparent;cursor:pointer}
   input[type=range]::-webkit-slider-runnable-track{height:3px;background:var(--chip);border-radius:2px}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;
-    background:#fff;border:1px solid rgba(0,0,0,.12);margin-top:-7px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:19px;height:19px;border-radius:50%;
+    background:#fff;border:1px solid rgba(0,0,0,.12);margin-top:-8px}
   input[type=range]::-moz-range-track{height:3px;background:var(--chip);border-radius:2px}
-  input[type=range]::-moz-range-thumb{width:15px;height:15px;border:1px solid rgba(0,0,0,.12);
+  input[type=range]::-moz-range-thumb{width:17px;height:17px;border:1px solid rgba(0,0,0,.12);
     border-radius:50%;background:#fff}
-  .legend{padding:12px 0 2px;font-size:12px;color:var(--muted);line-height:2.1}
+  .legend{padding:12px 0 2px;font-size:13.5px;color:var(--muted);line-height:2.1}
   .legend i{display:inline-block;width:14px;height:3px;margin-right:8px;vertical-align:middle;border-radius:2px}
   .model-note{border-top:1px solid var(--divider);margin-top:14px;padding-top:12px;
-    font-family:var(--mono);font-size:10.5px;color:var(--faint);line-height:1.9}
+    font-family:var(--mono);font-size:12px;color:var(--faint);line-height:1.9}
+  .model-note .src{font-family:inherit;font-size:11.5px;line-height:1.7;display:block;margin-top:8px}
   /* ---------- guide panel : store-utility-card grammar ---------- */
-  #guide h2{font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-0.224px;margin:2px 0 12px}
+  #guide h2{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-0.224px;margin:2px 0 14px}
   .eq{background:var(--canvas);border:1px solid var(--hairline);border-radius:18px;
-    padding:14px 16px;margin-bottom:12px}
-  .eq .t{font-size:12px;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:7px;line-height:1.4}
+    padding:16px 18px;margin-bottom:13px}
+  .eq .t{font-size:13.5px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px;line-height:1.4}
   .eq .t::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--red);flex:none}
   .eq.amber .t::before{background:var(--blue)}
   .eq.cyan .t::before{background:var(--teal)}
-  .eq .f{font-family:var(--mono);font-size:14.5px;font-weight:600;color:var(--ink);
-    letter-spacing:-0.2px;margin-bottom:5px}
-  .eq .d{font-size:12px;color:var(--muted);line-height:1.6}
+  .eq .f{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--ink);
+    letter-spacing:-0.2px;margin-bottom:6px}
+  .eq .d{font-size:13.5px;color:var(--muted);line-height:1.6}
   .eq .d b{color:var(--blue);font-weight:600}
-  .eq .err{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
-  #rec{margin-top:16px;background:var(--parchment);border-radius:18px;padding:16px}
-  #rec h3{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.224px;margin-bottom:10px}
-  #rec table{width:100%;border-collapse:collapse;font-size:12px}
-  #rec td{padding:4px 0;color:var(--ink-80)}
+  .eq .err{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  #rec{margin-top:16px;background:var(--parchment);border-radius:18px;padding:18px}
+  #rec h3{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-0.224px;margin-bottom:11px}
+  #rec table{width:100%;border-collapse:collapse;font-size:14px}
+  #rec td{padding:5px 0;color:var(--ink-80)}
   #rec td:last-child{text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-  .na{color:var(--faint);font-size:12px}
-  #fallback{display:none;height:100%;place-items:center;color:var(--muted);font-size:14px;text-align:center;line-height:2}
+  .na{color:var(--faint);font-size:13.5px}
+  #fallback{display:none;height:100%;place-items:center;color:var(--muted);font-size:15px;text-align:center;line-height:2}
 </style>
 </head>
 <body>
@@ -102,10 +103,10 @@
     </div>
     <div class="grp">
       <h2>토양 (Bekker 파라미터)</h2>
-      <button class="soil-btn on" data-soil="loam">양토<small>kc 16.4 · kφ 208.7 · n 1.1 · c 1.7kPa · φ 29°</small></button>
+      <button class="soil-btn on" data-soil="loam">양토<small>kc 52.5 · kφ 1128 · n 0.9 · c 4.8kPa · φ 20°</small></button>
       <button class="soil-btn" data-soil="clay">점토<small>kc 13.2 · kφ 692.2 · n 0.5 · c 4.1kPa · φ 13°</small></button>
       <button class="soil-btn" data-soil="sand">마른 모래<small>kc 1.0 · kφ 1528.4 · n 1.1 · c 1.0kPa · φ 28°</small></button>
-      <button class="soil-btn" data-soil="paddy">습한 논흙<small>kc 3.0 · kφ 45.0 · n 0.7 · c 1.5kPa · φ 20°</small></button>
+      <button class="soil-btn" data-soil="paddy">습한 논흙 (추정)<small>kc 3.0 · kφ 45.0 · n 0.7 · c 1.5kPa · φ 20°</small></button>
     </div>
     <div class="grp">
       <h2>트레드</h2>
@@ -154,6 +155,7 @@
       순견인력 = 총견인력 H − 압실저항 Rc<br>
       버티기 SF = (c·A + N·tanφ) / (W·sinθ)<br>
       트레드: δ = m·φ, H × (1 + 러그계수)
+      <span class="src">근거 — 토양: J.Y. Wong, Terramechanics and Off-Road Vehicle Eng. 2nd ed. (2009) 파라미터 표 (양토 Michigan · 모래 LLL · 점토 Clayey soil). 마찰비 δ/φ: Duncan &amp; Mokwa (2001), Fine (2011). 러그 계수: 그루서 수동지압 1차 근사 (Wong 2009), 계수는 가정치. 논흙: 추정.</span>
     </div>
   </aside>
   <div id="main">

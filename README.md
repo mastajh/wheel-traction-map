@@ -26,6 +26,20 @@ Bekker–Wong 지반역학 모델 기반, 설치 없이 브라우저에서 바�
 - 프리셋: 매끈 강성륜 / 일반 트레드 / 농업용 러그 / 패들 러그
 - 한계: Rc는 캐커스 기준(러그 침투 미반영), 단단한 지면에서는 러그 이득 과대평가 가능
 
+## 토양 파라미터 (문헌 값)
+
+J.Y. Wong, *Terramechanics and Off-Road Vehicle Engineering*, 2nd ed. (2009) 파라미터 표 기반:
+
+| 토양 | n | kc (kN/mⁿ⁺¹) | kφ (kN/mⁿ⁺²) | c (kPa) | φ (°) | K (m) | 출처 |
+|---|---|---|---|---|---|---|---|
+| 양토 (Sandy loam, Michigan) | 0.9 | 52.53 | 1127.97 | 4.83 | 20.0 | 0.025 | Wong (2009) |
+| 점토 (Clayey soil) | 0.5 | 13.19 | 692.15 | 4.14 | 13.0 | 0.010 | Wong (2009) |
+| 마른 모래 (Dry sand, LLL) | 1.1 | 0.99 | 1528.43 | 1.04 | 28.0 | 0.025 | Wong (2009) |
+| 습한 논흙 | 0.7 | 3.00 | 45.00 | 1.50 | 20.0 | 0.020 | 추정치 |
+
+트레드 마찰비 `δ/φ = 0.5~0.9` — Duncan & Mokwa (2001), *J. Geotech. Geoenviron. Eng.*; Fine (2011), *J. Terramechanics*.
+러그 계수 λ는 그루서 수동지압 모델(Wong 2009)의 1차 근사에 따른 **가정치**.
+
 ## 지반 모델
 
 ```
@@ -35,8 +49,13 @@ z₀ = [ W / (b·k·√D·I(n)) ]^(1/(n+0.5)),  I(n) = √π·Γ(n+1) / (2·Γ(n
 Rc = b·k·z₀^(n+1)/(n+1)
 ```
 
-- 토양 프리셋: 양토·점토·마른 모래(Wong 실측 계열), 습한 논흙(추정치)
 - 가이드선은 D–b 평면 등값선을 log-log 회귀로 `b = α·D^β` 피팅
+
+## 참고문헌
+
+1. Wong, J.Y. (2009). *Terramechanics and Off-Road Vehicle Engineering*, 2nd ed. Butterworth-Heinemann. — Bekker 압력-침하/전단 모델, 토양 파라미터 표, 그루서 추력 모델
+2. Duncan, J.M. & Mokwa, R.L. (2001). "Passive earth pressures: theories and tests." *J. Geotech. Geoenviron. Eng.* 127(3). — 흙-구조물 마찰비 δ/φ
+3. Fine, E. (2011). *J. Terramechanics* — 접촉면 마찰 특성
 
 ## 파일
 

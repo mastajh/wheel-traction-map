@@ -22,19 +22,25 @@ function gamma(z) {
 }
 const In = n => Math.sqrt(Math.PI) * gamma(n + 1) / (2 * gamma(n + 1.5));
 
-/* ---------- 토양 파라미터 (SI: N, m, Pa, rad) ---------- */
+/* ---------- 토양 파라미터 (SI: N, m, Pa, rad) ----------
+ * 문헌: J.Y. Wong, "Terramechanics and Off-Road Vehicle Engineering" 2nd ed. (2009)
+ *       압력-침하·전단 파라미터 표 (광물 지반, LLL/Michigan/WES 실측 시리즈)
+ *       검색 인용: Li et al. (2015, doi:10.1155/2015/293125), Guo et al. (2025, MDPI Appl. Sci. 15:6566) */
 const SOILS = {
-  loam:  { name: "양토",     kc: 16.4e3, kphi: 208.7e3,  n: 1.1, c: 1.72e3, phi: 29 * Math.PI / 180, K: 0.025 },
-  clay:  { name: "점토",     kc: 13.2e3, kphi: 692.2e3,  n: 0.5, c: 4.14e3, phi: 13 * Math.PI / 180, K: 0.012 },
-  sand:  { name: "마른 모래", kc: 0.99e3, kphi: 1528.4e3, n: 1.1, c: 1.04e3, phi: 28 * Math.PI / 180, K: 0.025 },
-  paddy: { name: "습한 논흙", kc: 3.0e3,  kphi: 45.0e3,   n: 0.7, c: 1.50e3, phi: 20 * Math.PI / 180, K: 0.020 },
+  loam:  { name: "양토",     kc: 52.53e3, kphi: 1127.97e3, n: 0.9, c: 4.83e3, phi: 20 * Math.PI / 180, K: 0.025 },  // Wong — Sandy loam (Michigan)
+  clay:  { name: "점토",     kc: 13.19e3, kphi: 692.15e3,  n: 0.5, c: 4.14e3, phi: 13 * Math.PI / 180, K: 0.010 },  // Wong — Clayey soil
+  sand:  { name: "마른 모래", kc: 0.99e3,  kphi: 1528.43e3, n: 1.1, c: 1.04e3, phi: 28 * Math.PI / 180, K: 0.025 },  // Wong — Dry sand (LLL)
+  paddy: { name: "습한 논흙", kc: 3.0e3,   kphi: 45.0e3,    n: 0.7, c: 1.50e3, phi: 20 * Math.PI / 180, K: 0.020 },  // 추정치 (문헌값 아님)
 };
 
 /* ---------- 트레드 프리셋 ----------
  * m  : 마찰각 보정계수 — 유효 마찰각 δ = m·φ
- *      (매끈한 바퀴는 흙-고무 마찰 δ≈0.7φ, 깊은 러그는 러그 끝 흙-흙 전단 δ→φ)
+ *      흙-금속/고무 마찰비 δ/φ ≈ 0.5~0.9 (Duncan & Mokwa 2001; Fine 2011 권장표)
+ *      매끈한 바퀴 0.70 (강·고무 smooth), 일반 트레드 0.85 (rough),
+ *      깊은 러그 1.00 (러그 끝에서 흙-흙 전단, δ→φ)
  * lug: 러그 수동저항 부가견인 계수 — 그루서가 흙을 파고 옹벽처럼 미는 추력
- *      H → H·(1+lug)  (1차 근사, 연약지반에서 유효, 단단한 지면에서는 과대평가될 수 있음) */
+ *      H → H·(1+lug)  (Wong 2009 그루서 추력 모델의 1차 근사; 계수는 가정치,
+ *      연약지반에서 유효, 단단한 지면에서는 과대평가될 수 있음) */
 const TREADS = {
   slick:  { name: "매끈 강성륜", m: 0.70, lug: 0.00 },
   rib:    { name: "일반 트레드", m: 0.85, lug: 0.10 },
@@ -177,7 +183,7 @@ const DIVERGE = [[0, "#c2261f"], [0.25, "#e3695f"], [0.5, "#f5f5f7"], [0.75, "#8
 const SFSCALE = [[0, "#c2261f"], [0.4, "#e3695f"], [0.5, "#f5f5f7"], [0.7, "#8fd6a0"], [1, "#2f9e44"]];
 const PLOTLT = { paper_bgcolor: "#f5f5f7", plot_bgcolor: "#f5f5f7",
                  font: { family: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
-                         color: "#86868b", size: 11 } };
+                         color: "#86868b", size: 13 } };
 const LC = { red: "#ff3b30", blue: "#0066cc", teal: "#30b0c7" };   // Apple 시스템 팔레트
 const CFG = { displayModeBar: false, responsive: true };
 
@@ -274,7 +280,7 @@ function draw3d(g, l0, l1, l2, hold) {
     line: { color, width: 7 }, name, hoverinfo: "name", showlegend: true,
   });
   const layout = { ...PLOTLT, margin: { l: 0, r: 0, t: 10, b: 0 },
-    legend: { x: 0.02, y: 0.95, bgcolor: "#ffffffd9", font: { size: 10, color: "#1d1d1f" },
+    legend: { x: 0.02, y: 0.95, bgcolor: "#ffffffd9", font: { size: 12, color: "#1d1d1f" },
               bordercolor: "#e0e0e0", borderwidth: 1 },
     scene: {
       xaxis: { title: "직경 D (m)", color: "#6e6e73", gridcolor: "#e3e3e6", backgroundcolor: "#f5f5f7" },
@@ -303,7 +309,7 @@ function draw2d(g, l0, l1, l2, f0, f1, f2, hold) {
     type: "contour", x: g.Ds, y: g.bs, z: g.T, customdata: hold ? g.TM : undefined,
     colorscale, zmin, zmax,
     contours: { coloring: "heatmap", showlabels: true,
-                labelfont: { color: "#6e6e73", size: 9 }, labelformat: zfmt },
+                labelfont: { color: "#6e6e73", size: 10.5 }, labelformat: zfmt },
     line: { color: "rgba(0,0,0,0.12)", width: 0.5 },
     colorbar: { title: hold ? "SF" : "N", tickfont: { color: "#86868b" }, titlefont: { color: "#86868b" },
                 thickness: 10, len: 0.8, outlinewidth: 0 },
@@ -324,7 +330,7 @@ function draw2d(g, l0, l1, l2, f0, f1, f2, hold) {
              line: { color, width: 1.5, dash: "dash" }, hoverinfo: "skip", showlegend: false };
   };
   const layout = { ...PLOTLT, margin: { l: 55, r: 10, t: 24, b: 45 },
-    title: { text: txt.t2d, font: { size: 11, color: "#86868b" } },
+    title: { text: txt.t2d, font: { size: 13, color: "#86868b" } },
     showlegend: false,
     xaxis: { title: "휠 직경 D (m)", color: "#6e6e73", gridcolor: "#e8e8ea", zeroline: false },
     yaxis: { title: "휠 폭 b (m)", color: "#6e6e73", gridcolor: "#e8e8ea", zeroline: false } };
