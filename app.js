@@ -30,6 +30,18 @@ const SOILS = {
   paddy: { name: "습한 논흙", kc: 3.0e3,  kphi: 45.0e3,   n: 0.7, c: 1.50e3, phi: 20 * Math.PI / 180, K: 0.020 },
 };
 
+/* ---------- 트레드 프리셋 ----------
+ * m  : 마찰각 보정계수 — 유효 마찰각 δ = m·φ
+ *      (매끈한 바퀴는 흙-고무 마찰 δ≈0.7φ, 깊은 러그는 러그 끝 흙-흙 전단 δ→φ)
+ * lug: 러그 수동저항 부가견인 계수 — 그루서가 흙을 파고 옹벽처럼 미는 추력
+ *      H → H·(1+lug)  (1차 근사, 연약지반에서 유효, 단단한 지면에서는 과대평가될 수 있음) */
+const TREADS = {
+  slick:  { name: "매끈 강성륜", m: 0.70, lug: 0.00 },
+  rib:    { name: "일반 트레드", m: 0.85, lug: 0.10 },
+  aglug:  { name: "농업용 러그", m: 1.00, lug: 0.25 },
+  paddle: { name: "패들 러그",   m: 1.00, lug: 0.40 },
+};
+
 /* ---------- 접지패치 기하 (경량) : 침하·접지길이·면적 ---------- */
 function contactPatch(W, D, b, soil) {
   const { kc, kphi, n } = soil;
@@ -43,12 +55,12 @@ function contactPatch(W, D, b, soil) {
 /* ---------- 바퀴 1개 해석 ----------
  * W: 바퀴하중(N, 지반법선 성분), D: 직경(m), b: 폭(m), s: 슬립률
  * 접지패치: 진입점(x=0) → 최저점(x=L), 침하 프로파일 z(x) = z0 − (L−x)²/D */
-function wheelTraction(W, D, b, soil, s) {
+function wheelTraction(W, D, b, soil, s, tread = TREADS.aglug) {
   const cp = contactPatch(W, D, b, soil);
   if (!cp) return null;
   const { z0, L, A, k } = cp;
   const { n, c, phi, K } = soil;
-  const tanp = Math.tan(phi);
+  const tanp = Math.tan(phi * tread.m);
   const N = 120, dx = L / N;
   let H = 0;
   for (let i = 0; i <= N; i++) {
@@ -58,20 +70,20 @@ function wheelTraction(W, D, b, soil, s) {
     const tau = (c + k * Math.pow(z, n) * tanp) * (1 - Math.exp(-s * x / K));
     H += tau * (i === 0 || i === N ? 0.5 : 1);
   }
-  H *= b * dx;
+  H *= b * dx * (1 + tread.lug);
   const Rc = b * k * Math.pow(z0, n + 1) / (n + 1);
   return { z0, L, A, H, Rc, T: H - Rc };
 }
 
 /* ---------- 버티기: 최대 경사각 θ_max (이분탐색, SF=1 해) ---------- */
-function thetaMax(Wv, D, b, soil) {
+function thetaMax(Wv, D, b, soil, tread = TREADS.aglug) {
   const lo0 = 0.5 * Math.PI / 180, hi0 = 85 * Math.PI / 180;
   if (!contactPatch(Wv * Math.cos(lo0), D, b, soil)) return null;  // 평지에서도 매몰
   const f = th => {
     const N = Wv * Math.cos(th);
     const cp = contactPatch(N, D, b, soil);
     if (!cp) return -1e9;
-    return soil.c * cp.A + N * Math.tan(soil.phi) - Wv * Math.sin(th);
+    return (soil.c * cp.A + N * Math.tan(soil.phi * tread.m)) * (1 + tread.lug) - Wv * Math.sin(th);
   };
   if (f(hi0) > 0) return 85;
   if (f(lo0) <= 0) return 0;
@@ -86,6 +98,7 @@ function thetaMax(Wv, D, b, soil) {
 /* ---------- 격자 스윕 ---------- */
 function computeGrid(p) {
   const soil = SOILS[p.soil];
+  const tread = TREADS[p.tread];
   const W = p.mass * 9.81 / 4;                    // 바퀴당 수직하중 (차체 수평, 균등분배)
   const th = p.slope * Math.PI / 180;
   const Nn = W * Math.cos(th);                    // 지반법선 하중 (버티기 모드)
@@ -99,17 +112,17 @@ function computeGrid(p) {
     T.push([]); Z.push([]); TM.push([]);
     for (let j = 0; j < ND; j++) {
       if (p.mode === "drive") {
-        const r = wheelTraction(W, Ds[j], bs[i], soil, p.slip);
+        const r = wheelTraction(W, Ds[j], bs[i], soil, p.slip, tread);
         T[i].push(r ? r.T : null);
         Z[i].push(r ? r.z0 / Ds[j] : null);
         TM[i].push(null);
       } else {
         const cp = contactPatch(Nn, Ds[j], bs[i], soil);
         if (!cp || Fv < 1e-9) { T[i].push(null); Z[i].push(null); TM[i].push(null); continue; }
-        const Hhold = soil.c * cp.A + Nn * Math.tan(soil.phi);  // 모르-쿨롱 피크
+        const Hhold = (soil.c * cp.A + Nn * Math.tan(soil.phi * tread.m)) * (1 + tread.lug);
         T[i].push(Hhold / Fv);                                  // 안전율 SF
         Z[i].push(cp.z0 / Ds[j]);
-        TM[i].push(thetaMax(W, Ds[j], bs[i], soil));
+        TM[i].push(thetaMax(W, Ds[j], bs[i], soil, tread));
       }
     }
   }
@@ -153,7 +166,7 @@ function fitPower(Dl, bl) {
 }
 
 /* ---------- 상태 ---------- */
-const state = { mode: "drive", soil: "loam", mass: 1000, slip: 0.20, tgt: 0.15,
+const state = { mode: "drive", soil: "loam", tread: "aglug", mass: 1000, slip: 0.20, tgt: 0.15,
                 slope: 12, sfTgt: 1.5,
                 dmin: 0.30, dmax: 1.20, bmin: 0.10, bmax: 0.50 };
 
@@ -367,12 +380,13 @@ function showRec(g, l1, hold, stats, lv1) {
     D = l1.D[0]; b = l1.b[0];
   }
   let rows;
+  const tread = TREADS[state.tread];
   if (hold) {
     const th = state.slope * Math.PI / 180;
     const Nn = g.W * Math.cos(th), Fv = g.W * Math.sin(th);
     const r = contactPatch(Nn, D, b, SOILS[state.soil]);
-    const Hhold = SOILS[state.soil].c * r.A + Nn * Math.tan(SOILS[state.soil].phi);
-    const tm = thetaMax(g.W, D, b, SOILS[state.soil]);
+    const Hhold = (SOILS[state.soil].c * r.A + Nn * Math.tan(SOILS[state.soil].phi * tread.m)) * (1 + tread.lug);
+    const tm = thetaMax(g.W, D, b, SOILS[state.soil], tread);
     rows = [
       ["휠 직경 D", `≥ ${fmt(D)} m`],
       ["휠 폭 b", `≥ ${fmt(b)} m`],
@@ -384,7 +398,7 @@ function showRec(g, l1, hold, stats, lv1) {
       ["바퀴당 버티기 여유력", fmt(Hhold - Fv, 0) + " N"],
     ];
   } else {
-    const r = wheelTraction(g.W, D, b, SOILS[state.soil], state.slip);
+    const r = wheelTraction(g.W, D, b, SOILS[state.soil], state.slip, tread);
     rows = [
       ["휠 직경 D", `≥ ${fmt(D)} m`],
       ["휠 폭 b", `≥ ${fmt(b)} m`],
@@ -432,12 +446,21 @@ function bind(id, outId, fmtFn, apply) {
 let timer = null;
 function debounce() { clearTimeout(timer); timer = setTimeout(update, 160); }
 
-document.querySelectorAll(".soil-btn:not(.mode-btn)").forEach(btn => {
+document.querySelectorAll(".soil-btn:not(.mode-btn):not(.tread-btn)").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".soil-btn:not(.mode-btn)").forEach(b => b.classList.remove("on"));
+    document.querySelectorAll(".soil-btn:not(.mode-btn):not(.tread-btn)").forEach(b => b.classList.remove("on"));
     btn.classList.add("on");
     state.soil = btn.dataset.soil;
     $("soilBadge").textContent = SOILS[state.soil].name;
+    update();
+  });
+});
+
+document.querySelectorAll(".tread-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tread-btn").forEach(b => b.classList.remove("on"));
+    btn.classList.add("on");
+    state.tread = btn.dataset.tread;
     update();
   });
 });
